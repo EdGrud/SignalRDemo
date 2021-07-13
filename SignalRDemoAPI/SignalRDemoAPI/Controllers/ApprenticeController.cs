@@ -8,7 +8,6 @@ using SignalRDemoAPI.Models;
 namespace SignalRDemoAPI.Controllers
 {
     [Route("api/[controller]")]
-    [ApiController]
     public class ApprenticeController : ControllerBase
     {
         private readonly IHubContext<ApprenticeHub> signalrApprenticeHub;
@@ -16,15 +15,15 @@ namespace SignalRDemoAPI.Controllers
         private static List<Apprentice> apprentices = new()
         {
             new Apprentice()
-                {Name = "Student 1", Id = Guid.NewGuid(), ComprehensionLevel = MaterialComprehension.StrongComprehension},
+                {Name = "Student 1", Id = 1, ContentComprehension = ComprehensionLevel.StrongComprehension},
             new Apprentice()
-                {Name = "Student 2", Id = Guid.NewGuid(), ComprehensionLevel = MaterialComprehension.LittleComprehension},
+                {Name = "Student 2", Id = 2, ContentComprehension = ComprehensionLevel.LittleComprehension},
             new Apprentice()
-                {Name = "Student 3", Id = Guid.NewGuid(), ComprehensionLevel = MaterialComprehension.ModerateComprehension},
+                {Name = "Student 3", Id = 3, ContentComprehension = ComprehensionLevel.ModerateComprehension},
             new Apprentice()
-                {Name = "Student 4", Id = Guid.NewGuid(), ComprehensionLevel = MaterialComprehension.ModerateComprehension},
+                {Name = "Student 4", Id = 4, ContentComprehension = ComprehensionLevel.ModerateComprehension},
             new Apprentice()
-                {Name = "Student 5", Id = Guid.NewGuid(), ComprehensionLevel = MaterialComprehension.StrongComprehension},
+                {Name = "Student 5", Id = 5, ContentComprehension = ComprehensionLevel.StrongComprehension},
         };
 
         public ApprenticeController(IHubContext<ApprenticeHub> signalrApprenticeHub)
@@ -35,9 +34,7 @@ namespace SignalRDemoAPI.Controllers
         [HttpGet("")]
         public IActionResult GetAllApprentices()
         {
-            signalrApprenticeHub.Clients.All.SendAsync("getallapprentices", apprentices);
-
-            return Ok();
+            return Ok(apprentices);
         }
 
         [HttpPut("")]
@@ -51,8 +48,9 @@ namespace SignalRDemoAPI.Controllers
             }
 
             apprenticeToUpdate.Name = apprentice.Name;
-            apprenticeToUpdate.ComprehensionLevel = apprentice.ComprehensionLevel;
+            apprenticeToUpdate.ContentComprehension = apprentice.ContentComprehension;
 
+            // This is what sends the updated apprentices to the subscribed clients
             signalrApprenticeHub.Clients.All.SendAsync("getallapprentices", apprentices);
             
             return Ok(apprenticeToUpdate);
@@ -64,17 +62,20 @@ namespace SignalRDemoAPI.Controllers
             var newApprentice = new Apprentice()
             {
                 Name = apprenticeName, 
-                Id = Guid.NewGuid(),
-                ComprehensionLevel = MaterialComprehension.LittleComprehension
+                Id = apprentices.Count + 1,
+                ContentComprehension = ComprehensionLevel.LittleComprehension
             };
             
             apprentices.Add(newApprentice);
-
+            
+            // This is what sends the updated apprentices to the subscribed clients
+            signalrApprenticeHub.Clients.All.SendAsync("getallapprentices", apprentices);
+            
             return Ok(newApprentice);
         }
 
-        [HttpDelete("{apprenticeId:guid}")]
-        public IActionResult DeleteApprentice(Guid apprenticeId)
+        [HttpDelete("{apprenticeId:int}")]
+        public IActionResult DeleteApprentice(int apprenticeId)
         {
             var apprenticeToDelete = apprentices.FirstOrDefault(a => a.Id == apprenticeId);
 
@@ -85,6 +86,8 @@ namespace SignalRDemoAPI.Controllers
             
             apprentices.Remove(apprenticeToDelete);
             
+            signalrApprenticeHub.Clients.All.SendAsync("getallapprentices", apprentices);
+
             return Ok();
         }
     }

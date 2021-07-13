@@ -6,8 +6,8 @@ namespace SignalRDemoAPI.Models
     {
         public string Name { get; set; }
 
-        public Guid Id { get; set; }
+        public int Id { get; set; }
 
-        public MaterialComprehension ComprehensionLevel { get; set; }
+        public ComprehensionLevel ContentComprehension { get; set; }
     }
 }

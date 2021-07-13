@@ -28,6 +28,7 @@ namespace SignalRDemoAPI
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            // Add SignalR, this is included by default 
             services.AddSignalR();
             services.AddControllers();
             services.AddSwaggerGen(c =>
@@ -64,7 +65,9 @@ namespace SignalRDemoAPI
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
-                endpoints.MapHub<ApprenticeHub>("/Apprentice");
+                
+                // Register signalR hub, this needs to be different than the controller route/name
+                endpoints.MapHub<ApprenticeHub>("/ApprenticeHub");
             });
         }
     }
